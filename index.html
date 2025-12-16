@@ -192,6 +192,14 @@
         .category-value {
             font-weight: 700;
             color: #667eea;
+            text-align: right;
+        }
+
+        /* Added styles for quantity display in summary */
+        .category-quantity {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
         }
 
         .total {
@@ -203,6 +211,13 @@
             font-size: 1.5em;
             font-weight: 700;
             margin-top: 20px;
+        }
+
+        /* Added styles for total quantity display */
+        .total-quantity {
+            font-size: 0.6em;
+            opacity: 0.9;
+            margin-top: 5px;
         }
 
         .empty-state {
@@ -300,6 +315,8 @@
                 
                 <div class="total" id="totalValue">
                     Total: R$ 0,00
+                    <!-- Added total quantity display -->
+                    <div class="total-quantity" id="totalQuantity"></div>
                 </div>
 
                 <button type="button" id="clearBtn" style="background: #dc3545; margin-top: 10px;">🗑️ Limpar Dados</button>
@@ -318,6 +335,7 @@
         const itemCount = document.getElementById('itemCount');
         const clearBtn = document.getElementById('clearBtn');
         const priceInput = document.getElementById('price');
+        const totalQuantity = document.getElementById('totalQuantity'); // Added total quantity element
 
         // Máscara para o campo de valor
         priceInput.addEventListener('input', (e) => {
@@ -449,26 +467,62 @@
             }
 
             const categoryTotals = {};
+            const categoryQuantities = {};
+            
             products.forEach(product => {
                 if (!categoryTotals[product.category]) {
                     categoryTotals[product.category] = 0;
+                    categoryQuantities[product.category] = {};
                 }
                 categoryTotals[product.category] += product.price;
+                
+                // Agrupar quantidades por unidade
+                if (!categoryQuantities[product.category][product.unit]) {
+                    categoryQuantities[product.category][product.unit] = 0;
+                }
+                categoryQuantities[product.category][product.unit] += product.quantity;
             });
 
             categorySummary.innerHTML = Object.entries(categoryTotals)
                 .sort((a, b) => b[1] - a[1])
-                .map(([category, total]) => `
-                    <div class="summary-item">
-                        <span class="category-name">${category}</span>
-                        <span class="category-value">R$ ${total.toFixed(2).replace('.', ',')}</span>
-                    </div>
-                `).join('');
+                .map(([category, total]) => {
+                    const quantities = categoryQuantities[category];
+                    const quantityText = Object.entries(quantities)
+                        .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')} ${unit}`)
+                        .join(' + ');
+                    
+                    return `
+                        <div class="summary-item">
+                            <span class="category-name">${category}</span>
+                            <span class="category-value">
+                                R$ ${total.toFixed(2).replace('.', ',')}
+                                <div class="category-quantity">${quantityText}</div>
+                            </span>
+                        </div>
+                    `;
+                }).join('');
         }
 
         function updateTotal() {
             const total = products.reduce((sum, product) => sum + product.price, 0);
-            totalValue.textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+            
+            // Calcular total de quantidades agrupadas por unidade
+            const totalQuantities = {};
+            products.forEach(product => {
+                if (!totalQuantities[product.unit]) {
+                    totalQuantities[product.unit] = 0;
+                }
+                totalQuantities[product.unit] += product.quantity;
+            });
+            
+            const quantityText = Object.entries(totalQuantities)
+                .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')} ${unit}`)
+                .join(' + ');
+            
+            totalValue.innerHTML = `
+                Total: R$ ${total.toFixed(2).replace('.', ',')}
+                <div class="total-quantity">Quantidade: ${quantityText}</div>
+            `;
         }
 
         // Carregar dados ao iniciar a página
