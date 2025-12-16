@@ -241,7 +241,7 @@
                 <h2>Adicionar Produto</h2>
                 <form id="productForm">
                     <div class="form-group">
-                        <label for="productName">Nome do Produto</label>
+                        <label for="productName">Nome</label>
                         <input type="text" id="productName" placeholder="Ex: Arroz" required>
                     </div>
                     
@@ -282,6 +282,7 @@
                     </div>
                     
                     <button type="submit">➕ Adicionar ao Carrinho</button>
+                    <button type="button" id="clearBtn" style="background: #dc3545; margin-top: 10px;">🗑️ Limpar Dados</button>
                 </form>
             </div>
             
@@ -314,6 +315,43 @@
         const categorySummary = document.getElementById('categorySummary');
         const totalValue = document.getElementById('totalValue');
         const itemCount = document.getElementById('itemCount');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Carregar dados do localStorage ao iniciar
+        function loadFromLocalStorage() {
+            const savedProducts = localStorage.getItem('shoppingProducts');
+            const savedNextId = localStorage.getItem('shoppingNextId');
+            
+            if (savedProducts) {
+                products = JSON.parse(savedProducts);
+            }
+            
+            if (savedNextId) {
+                nextId = parseInt(savedNextId);
+            }
+            
+            updateDisplay();
+        }
+
+        // Salvar dados no localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('shoppingProducts', JSON.stringify(products));
+            localStorage.setItem('shoppingNextId', nextId.toString());
+        }
+
+        // Limpar todos os dados
+        clearBtn.addEventListener('click', () => {
+            const confirmClear = confirm('Tem certeza que deseja limpar o carrinho?');
+            
+            if (confirmClear) {
+                products = [];
+                nextId = 1;
+                localStorage.removeItem('shoppingProducts');
+                localStorage.removeItem('shoppingNextId');
+                updateDisplay();
+                alert('Carrinho limpo com sucesso!');
+            }
+        });
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -331,6 +369,7 @@
             };
 
             products.push(product);
+            saveToLocalStorage();
             form.reset();
             updateDisplay();
             document.getElementById('productName').focus();
@@ -338,6 +377,7 @@
 
         function removeProduct(id) {
             products = products.filter(p => p.id !== id);
+            saveToLocalStorage();
             updateDisplay();
         }
 
@@ -402,6 +442,9 @@
             const total = products.reduce((sum, product) => sum + product.price, 0);
             totalValue.textContent = `Total: R$ ${total.toFixed(2)}`;
         }
+
+        // Carregar dados ao iniciar a página
+        loadFromLocalStorage();
     </script>
 </body>
 </html>
