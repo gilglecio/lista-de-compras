@@ -337,6 +337,19 @@
         const clearBtn = document.getElementById('clearBtn');
         const priceInput = document.getElementById('price');
         const totalQuantity = document.getElementById('totalQuantity'); // Added total quantity element
+        const quantityInput = document.getElementById('quantity');
+        const unitSelect = document.getElementById('unit');
+
+        unitSelect.addEventListener('change', () => {
+            if (unitSelect.value === 'un') {
+                quantityInput.step = '1';
+                quantityInput.min = '1';
+                quantityInput.value = Math.floor(quantityInput.value || 1);
+            } else {
+                quantityInput.step = '0.01';
+                quantityInput.min = '0.01';
+            }
+        });
 
         // Máscara para o campo de valor
         priceInput.addEventListener('input', (e) => {
@@ -510,7 +523,7 @@
                             <span class="badge">${product.category}</span>
                         </div>
                         <div class="product-details">
-                            ${product.quantity}${product.unit} x R$ ${(product.price).toFixed(2).replace('.', ',')}
+                            ${formatQuantity(product.quantity, product.unit)} x R$ ${(product.price).toFixed(2).replace('.', ',')}
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
@@ -549,8 +562,7 @@
                 .map(([category, total]) => {
                     const quantities = categoryQuantities[category];
                     const quantityText = Object.entries(quantities)
-                        .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')}${unit}`)
-                        .join(' + ');
+                        .map(([unit, qty]) => formatQuantity(qty, unit));
                     
                     return `
                         <div class="summary-item">
@@ -562,6 +574,20 @@
                         </div>
                     `;
                 }).join('');
+        }
+
+        function formatQuantity(quantity, unit) {
+            // unidade
+            if (unit === 'un') {
+                return quantity.toString();
+            }
+
+            // outras unidades
+            if (Number.isInteger(quantity)) {
+                return `${quantity}${unit}`;
+            }
+
+            return `${quantity.toFixed(2).replace('.', ',')}${unit}`;
         }
 
         function updateTotal() {
