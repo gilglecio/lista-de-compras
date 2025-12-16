@@ -242,7 +242,7 @@
                 <form id="productForm">
                     <div class="form-group">
                         <label for="productName">Nome</label>
-                        <input type="text" id="productName" placeholder="Ex: Arroz" required>
+                        <input type="text" id="productName" placeholder="Ex: Arroz" maxlength="50" required>
                     </div>
                     
                     <div class="form-group">
@@ -264,13 +264,13 @@
                     
                     <div class="form-group">
                         <label for="price">Valor (R$)</label>
-                        <input type="number" id="price" step="0.01" min="0" placeholder="0.00" required>
+                        <input type="text" id="price" placeholder="0,00" required>
                     </div>
                     
                     <div class="form-group">
                         <label>Quantidade</label>
                         <div class="quantity-group">
-                            <input type="number" id="quantity" step="0.01" min="0.01" placeholder="1" required>
+                            <input type="number" id="quantity" step="0.01" min="0.01" max="999" placeholder="1" required>
                             <select id="unit" required>
                                 <option value="un">Unidade(s)</option>
                                 <option value="kg">Kg</option>
@@ -316,6 +316,33 @@
         const totalValue = document.getElementById('totalValue');
         const itemCount = document.getElementById('itemCount');
         const clearBtn = document.getElementById('clearBtn');
+        const priceInput = document.getElementById('price');
+
+        // Máscara para o campo de valor
+        priceInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // Limitar a 100000 centavos (R$ 1.000,00)
+            if (parseInt(value) > 100000) {
+                value = '100000';
+            }
+            
+            if (value === '') {
+                e.target.value = '';
+                return;
+            }
+            
+            value = value.padStart(3, '0');
+            const integerPart = value.slice(0, -2);
+            const decimalPart = value.slice(-2);
+            
+            e.target.value = `${parseInt(integerPart)},${decimalPart}`;
+        });
+
+        // Função para converter valor formatado em número
+        function parsePrice(formattedPrice) {
+            return parseFloat(formattedPrice.replace(',', '.')) || 0;
+        }
 
         // Carregar dados do localStorage ao iniciar
         function loadFromLocalStorage() {
@@ -363,7 +390,7 @@
                 id: nextId++,
                 name: document.getElementById('productName').value,
                 category: document.getElementById('category').value,
-                price: parseFloat(document.getElementById('price').value),
+                price: parsePrice(document.getElementById('price').value),
                 quantity: parseFloat(document.getElementById('quantity').value),
                 unit: document.getElementById('unit').value
             };
@@ -407,7 +434,7 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
-                        <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                        <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
                         <button class="remove-btn" onclick="removeProduct(${product.id})">✕</button>
                     </div>
                 </div>
@@ -433,14 +460,14 @@
                 .map(([category, total]) => `
                     <div class="summary-item">
                         <span class="category-name">${category}</span>
-                        <span class="category-value">R$ ${total.toFixed(2)}</span>
+                        <span class="category-value">R$ ${total.toFixed(2).replace('.', ',')}</span>
                     </div>
                 `).join('');
         }
 
         function updateTotal() {
             const total = products.reduce((sum, product) => sum + product.price, 0);
-            totalValue.textContent = `Total: R$ ${total.toFixed(2)}`;
+            totalValue.textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
         // Carregar dados ao iniciar a página
