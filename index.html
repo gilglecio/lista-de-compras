@@ -407,9 +407,19 @@
 
         function addProduct() {
             const nameInput = document.getElementById('productName');
+            const trimmedName = nameInput.value.trim();
 
-            const rawName = nameInput.value;
-            const trimmedName = rawName.trim();
+            if (!trimmedName) {
+                alert('Informe um nome válido para o produto.');
+                nameInput.focus();
+                return;
+            }
+
+            if (!isValidProductName(trimmedName)) {
+                alert('A descrição deve conter apenas letras, números e espaços.');
+                nameInput.focus();
+                return;
+            }
 
             // Nome vazio após trim
             if (!trimmedName) {
@@ -463,6 +473,11 @@
             form.reset();
             updateDisplay();
             nameInput.focus();
+        }
+
+        function isValidProductName(name) {
+            const regex = /^[A-Za-zÀ-ÿ0-9 ]+$/;
+            return regex.test(name);
         }
 
         function removeProduct(id) {
