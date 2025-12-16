@@ -253,7 +253,7 @@
         
         <div class="content-wrapper">
             <div class="card">
-                <h2>Adicionar Produto</h2>
+                <h2>Produto</h2>
                 <form id="productForm">
                     <div class="form-group">
                         <label for="productName">Nome</label>
@@ -264,15 +264,15 @@
                         <label for="category">Categoria</label>
                         <select id="category" required>
                             <option value="">Selecione...</option>
-                            <option value="Alimentos Básicos">Alimentos Básicos</option>
-                            <option value="Carnes e Peixes">Carnes e Peixes</option>
-                            <option value="Frutas e Verduras">Frutas e Verduras</option>
-                            <option value="Laticínios">Laticínios</option>
+                            <option value="Alimentos Básicos">Alimentos básicos</option>
                             <option value="Bebidas">Bebidas</option>
-                            <option value="Limpeza">Limpeza</option>
-                            <option value="Higiene">Higiene</option>
-                            <option value="Padaria">Padaria</option>
+                            <option value="Carnes e Peixes">Carnes e peixes</option>
                             <option value="Congelados">Congelados</option>
+                            <option value="Frutas e Verduras">Frutas e verduras</option>
+                            <option value="Higiene">Higiene</option>
+                            <option value="Laticínios">Laticínios</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Padaria">Padaria</option>
                             <option value="Outros">Outros</option>
                         </select>
                     </div>
@@ -285,19 +285,19 @@
                     <div class="form-group">
                         <label>Quantidade</label>
                         <div class="quantity-group">
-                            <input type="number" id="quantity" step="0.01" min="0.01" max="999" placeholder="1" required>
+                            <input type="number" id="quantity" step="0.01" min="0.01" max="9999" placeholder="1" required>
                             <select id="unit" required>
                                 <option value="">Selecione...</option>
-                                <option value="un">Unidade(s)</option>
+                                <option value="un">Unidade</option>
                                 <option value="kg">Kg</option>
-                                <option value="g">Gramas</option>
-                                <option value="L">Litros</option>
+                                <option value="g">Grama</option>
+                                <option value="L">Litro</option>
                                 <option value="ml">Ml</option>
                             </select>
                         </div>
                     </div>
                     
-                    <button type="submit">➕ Adicionar ao Carrinho</button>
+                    <button type="submit">➕ Adicionar</button>
                 </form>
             </div>
             
@@ -309,7 +309,7 @@
                     </div>
                 </div>
                 
-                <h2>Resumo por Categoria</h2>
+                <h2>Resumo por categoria</h2>
                 <div class="summary" id="categorySummary">
                     <div class="empty-state">Adicione produtos para ver o resumo</div>
                 </div>
@@ -320,7 +320,7 @@
                     <div class="total-quantity" id="totalQuantity"></div>
                 </div>
 
-                <button type="button" id="clearBtn" style="background: #dc3545; margin-top: 10px;">🗑️ Limpar Dados</button>
+                <button type="button" id="clearBtn" style="background: #dc3545; margin-top: 10px;">🗑️ Limpar</button>
             </div>
         </div>
     </div>
@@ -427,33 +427,28 @@
                 return;
             }
 
+            const priceInput = document.getElementById('price');
+
             const normalizedName = normalizeText(trimmedName);
             const category = document.getElementById('category').value;
-            const price = parsePrice(document.getElementById('price').value);
+            const price = parsePrice(priceInput.value);
             const quantity = parseFloat(document.getElementById('quantity').value);
             const unit = document.getElementById('unit').value;
 
+            if (price <= 0) {
+                alert('O valor deve ser maior que zero.');
+                priceInput.focus();
+                return;
+            }
+
             // Procurar produto existente (ignorando acentos e caixa)
             const existingProduct = products.find(
-                p => normalizeText(p.name) === normalizedName
+                p => normalizeText(p.name) === normalizedName && p.price === price && p.unit === unit
             );
 
             if (existingProduct) {
-                // Produto existe → verificar unidade
-                if (existingProduct.unit !== unit) {
-                    alert(
-                        `O produto "${existingProduct.name}" já existe com a unidade "${existingProduct.unit}".\n` +
-                        `Não é possível somar com "${unit}".`
-                    );
-                    return;
-                }
-
                 // Somar quantidade
                 existingProduct.quantity += quantity;
-
-                // Atualizar preço (opcional: mantém o último informado)
-                existingProduct.price = price;
-
             } else {
                 // Produto novo
                 const product = {
@@ -515,7 +510,7 @@
                             <span class="badge">${product.category}</span>
                         </div>
                         <div class="product-details">
-                            ${product.quantity} ${product.unit}
+                            ${product.quantity}${product.unit} x R$ ${(product.price).toFixed(2).replace('.', ',')}
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
@@ -554,7 +549,7 @@
                 .map(([category, total]) => {
                     const quantities = categoryQuantities[category];
                     const quantityText = Object.entries(quantities)
-                        .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')} ${unit}`)
+                        .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')}${unit}`)
                         .join(' + ');
                     
                     return `
@@ -580,10 +575,6 @@
                 }
                 totalQuantities[product.unit] += product.quantity;
             });
-            
-            const quantityText = Object.entries(totalQuantities)
-                .map(([unit, qty]) => `${qty.toFixed(2).replace('.', ',')} ${unit}`)
-                .join(' + ');
             
             totalValue.innerHTML = `
                 Total: R$ ${total.toFixed(2).replace('.', ',')}
