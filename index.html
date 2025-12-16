@@ -453,7 +453,7 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
-                        <div class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</div>
+                        <div class="product-price">R$ ${(product.price*product.quantity).toFixed(2).replace('.', ',')}</div>
                         <button class="remove-btn" onclick="removeProduct(${product.id})">✕</button>
                     </div>
                 </div>
@@ -474,7 +474,7 @@
                     categoryTotals[product.category] = 0;
                     categoryQuantities[product.category] = {};
                 }
-                categoryTotals[product.category] += product.price;
+                categoryTotals[product.category] += product.price * product.quantity;
                 
                 // Agrupar quantidades por unidade
                 if (!categoryQuantities[product.category][product.unit]) {
@@ -504,7 +504,7 @@
         }
 
         function updateTotal() {
-            const total = products.reduce((sum, product) => sum + product.price, 0);
+            const total = products.reduce((sum, product) => sum + (product.price * product.quantity), 0);
             
             // Calcular total de quantidades agrupadas por unidade
             const totalQuantities = {};
