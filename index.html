@@ -406,20 +406,63 @@
         });
 
         function addProduct() {
-            const product = {
-                id: nextId++,
-                name: document.getElementById('productName').value,
-                category: document.getElementById('category').value,
-                price: parsePrice(document.getElementById('price').value),
-                quantity: parseFloat(document.getElementById('quantity').value),
-                unit: document.getElementById('unit').value
-            };
+            const nameInput = document.getElementById('productName');
 
-            products.push(product);
+            const rawName = nameInput.value;
+            const trimmedName = rawName.trim();
+
+            // Nome vazio após trim
+            if (!trimmedName) {
+                alert('Informe um nome válido para o produto.');
+                nameInput.focus();
+                return;
+            }
+
+            const normalizedName = normalizeText(trimmedName);
+            const category = document.getElementById('category').value;
+            const price = parsePrice(document.getElementById('price').value);
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const unit = document.getElementById('unit').value;
+
+            // Procurar produto existente (ignorando acentos e caixa)
+            const existingProduct = products.find(
+                p => normalizeText(p.name) === normalizedName
+            );
+
+            if (existingProduct) {
+                // Produto existe → verificar unidade
+                if (existingProduct.unit !== unit) {
+                    alert(
+                        `O produto "${existingProduct.name}" já existe com a unidade "${existingProduct.unit}".\n` +
+                        `Não é possível somar com "${unit}".`
+                    );
+                    return;
+                }
+
+                // Somar quantidade
+                existingProduct.quantity += quantity;
+
+                // Atualizar preço (opcional: mantém o último informado)
+                existingProduct.price = price;
+
+            } else {
+                // Produto novo
+                const product = {
+                    id: nextId++,
+                    name: trimmedName, // mantém nome original digitado
+                    category,
+                    price,
+                    quantity,
+                    unit
+                };
+
+                products.push(product);
+            }
+
             saveToLocalStorage();
             form.reset();
             updateDisplay();
-            document.getElementById('productName').focus();
+            nameInput.focus();
         }
 
         function removeProduct(id) {
@@ -432,6 +475,14 @@
             updateProductsList();
             updateCategorySummary();
             updateTotal();
+        }
+
+        function normalizeText(text) {
+            return text
+                .normalize('NFD')                // separa acentos
+                .replace(/[\u0300-\u036f]/g, '') // remove acentos
+                .toLowerCase()
+                .trim();
         }
 
         function updateProductsList() {
