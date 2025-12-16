@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .quantity-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .products-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .product-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .product-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .product-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-right: 10px;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            width: auto;
+            margin: 0;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .category-name {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .category-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .total {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Lista de Compras</h1>
+        
+        <div class="content-wrapper">
+            <div class="card">
+                <h2>Adicionar Produto</h2>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label for="productName">Nome do Produto</label>
+                        <input type="text" id="productName" placeholder="Ex: Arroz" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Categoria</label>
+                        <select id="category" required>
+                            <option value="">Selecione...</option>
+                            <option value="Alimentos Básicos">Alimentos Básicos</option>
+                            <option value="Carnes e Peixes">Carnes e Peixes</option>
+                            <option value="Frutas e Verduras">Frutas e Verduras</option>
+                            <option value="Laticínios">Laticínios</option>
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Higiene">Higiene</option>
+                            <option value="Padaria">Padaria</option>
+                            <option value="Congelados">Congelados</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="price">Valor (R$)</label>
+                        <input type="number" id="price" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Quantidade</label>
+                        <div class="quantity-group">
+                            <input type="number" id="quantity" step="0.01" min="0.01" placeholder="1" required>
+                            <select id="unit" required>
+                                <option value="un">Unidade(s)</option>
+                                <option value="kg">Kg</option>
+                                <option value="g">Gramas</option>
+                                <option value="L">Litros</option>
+                                <option value="ml">Ml</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit">➕ Adicionar ao Carrinho</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>Carrinho (<span id="itemCount">0</span> itens)</h2>
+                <div class="products-list" id="productsList">
+                    <div class="empty-state">
+                        Nenhum produto adicionado ainda
+                    </div>
+                </div>
+                
+                <h2>Resumo por Categoria</h2>
+                <div class="summary" id="categorySummary">
+                    <div class="empty-state">Adicione produtos para ver o resumo</div>
+                </div>
+                
+                <div class="total" id="totalValue">
+                    Total: R$ 0,00
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let nextId = 1;
+
+        const form = document.getElementById('productForm');
+        const productsList = document.getElementById('productsList');
+        const categorySummary = document.getElementById('categorySummary');
+        const totalValue = document.getElementById('totalValue');
+        const itemCount = document.getElementById('itemCount');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addProduct();
+        });
+
+        function addProduct() {
+            const product = {
+                id: nextId++,
+                name: document.getElementById('productName').value,
+                category: document.getElementById('category').value,
+                price: parseFloat(document.getElementById('price').value),
+                quantity: parseFloat(document.getElementById('quantity').value),
+                unit: document.getElementById('unit').value
+            };
+
+            products.push(product);
+            form.reset();
+            updateDisplay();
+            document.getElementById('productName').focus();
+        }
+
+        function removeProduct(id) {
+            products = products.filter(p => p.id !== id);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            updateProductsList();
+            updateCategorySummary();
+            updateTotal();
+        }
+
+        function updateProductsList() {
+            itemCount.textContent = products.length;
+            
+            if (products.length === 0) {
+                productsList.innerHTML = '<div class="empty-state">Nenhum produto adicionado ainda</div>';
+                return;
+            }
+
+            productsList.innerHTML = products.map(product => `
+                <div class="product-item">
+                    <div class="product-info">
+                        <div class="product-name">
+                            ${product.name}
+                            <span class="badge">${product.category}</span>
+                        </div>
+                        <div class="product-details">
+                            ${product.quantity} ${product.unit}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="product-price">R$ ${product.price.toFixed(2)}</div>
+                        <button class="remove-btn" onclick="removeProduct(${product.id})">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCategorySummary() {
+            if (products.length === 0) {
+                categorySummary.innerHTML = '<div class="empty-state">Adicione produtos para ver o resumo</div>';
+                return;
+            }
+
+            const categoryTotals = {};
+            products.forEach(product => {
+                if (!categoryTotals[product.category]) {
+                    categoryTotals[product.category] = 0;
+                }
+                categoryTotals[product.category] += product.price;
+            });
+
+            categorySummary.innerHTML = Object.entries(categoryTotals)
+                .sort((a, b) => b[1] - a[1])
+                .map(([category, total]) => `
+                    <div class="summary-item">
+                        <span class="category-name">${category}</span>
+                        <span class="category-value">R$ ${total.toFixed(2)}</span>
+                    </div>
+                `).join('');
+        }
+
+        function updateTotal() {
+            const total = products.reduce((sum, product) => sum + product.price, 0);
+            totalValue.textContent = `Total: R$ ${total.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
